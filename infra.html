@@ -15,17 +15,51 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
+    const FRANKLIN_PROFILE = {
+      name: "Franklin Carrillo",
+      headline: "Platform Engineer at Edward Jones",
+      location: "Charlotte Metro",
+      connectionCount: "130",
+      followerCount: "131",
+      education: [
+        { school: "Georgia Institute of Technology", degree: "Master of Science - MS, Computer Science", period: "Jan 2022 - Dec 2024" },
+        { school: "Florida Atlantic University", degree: "Bachelor of Science - BS, Computer Science", period: "2016 - 2019" }
+      ],
+      experience: [
+        { company: "Edward Jones", role: "Platform Engineer", period: "Apr 2023 - Present · 3 yrs 3 mos" },
+        { company: "Edward Jones", role: "DevOps/SRE Specialist", period: "Mar 2022 - Mar 2023 · 1 yr 1 mo" },
+        { company: "American Express", role: "Service Assurance Engineer", period: "Sep 2019 - Mar 2022 · 2 yrs 7 mos", location: "Sunrise, Florida" },
+        { company: "STORIS, Inc.", role: "Application Developer Spring Intern", period: "Jan 2019 - Mar 2019 · 3 mos", location: "Deerfield Beach, Florida" },
+        { company: "Modernizing Medicine", role: "Web Developer Summer Intern", period: "Jun 2018 - Aug 2018 · 3 mos", location: "Boca Raton, Florida" },
+        { company: "Aerospace Technologies Group", role: "IT Intern", period: "Oct 2017 - Mar 2018 · 6 mos", location: "Boca Raton, Florida" }
+      ],
+      certs: [
+        { name: "Microsoft Certified: Azure Fundamentals", issuer: "Microsoft", date: "Issued Aug 2025", id: "1CD3BAEA8452D226" },
+        { name: "IT Information Library Foundations Certification (ITIL)", issuer: "AXELOS Global Best Practice", date: "Issued Dec 2020" }
+      ],
+      linkedIn: "https://www.linkedin.com/in/franklin-carrillo-35994b15b/",
+      skills: ["Splunk", "ITIL Certified"],
+      activity: [
+        "Shared: Microsoft Certified: Azure Fundamentals (9mo ago) — 11 reactions, 1 comment",
+        "Shared: Completed Master of Science - CS at Georgia Tech (1yr ago) — 26 reactions, 9 comments"
+      ]
+    };
+
+    function formatTime(date) {
+      return date.toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' });
+    }
+
     function App() {
+      const [gotcha, setGotcha] = useState(false);
+      const [gotchaData, setGotchaData] = useState(null);
       const careersRef = useRef(null);
       const [scrolled, setScrolled] = useState(false);
+      const loadTime = useRef(new Date());
 
       useEffect(() => {
-        const searchParams = new URLSearchParams(window.location.search);
-        const shouldScroll = searchParams.get('apply') === 'true' || window.location.hash.includes('apply');
+        const shouldScroll = new URLSearchParams(window.location.search).get('apply') === 'true' || window.location.hash.includes('apply');
         if (shouldScroll && careersRef.current) {
-          setTimeout(() => {
-            careersRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 600);
+          setTimeout(() => careersRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }), 600);
         }
         const handleScroll = () => setScrolled(window.scrollY > 50);
         window.addEventListener('scroll', handleScroll);
@@ -36,6 +70,142 @@
         e.preventDefault();
         if (careersRef.current) careersRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
+
+      const triggerGotcha = async (e) => {
+        e.preventDefault();
+        const clickTime = new Date();
+        const timeOnPage = Math.round((clickTime - loadTime.current) / 1000);
+        let ipData = { ip: "Unknown", city: "Unknown", country: "Unknown", org: "Unknown", isp: "Unknown", region: "Unknown", timezone: "Unknown", postal: "Unknown" };
+        try {
+          const r = await fetch('https://ipapi.co/json/');
+          if (r.ok) ipData = await r.json();
+        } catch (_) {}
+
+        setGotchaData({
+          clickTime,
+          timeOnPage,
+          ip: ipData.ip || "Unknown",
+          city: ipData.city || "Unknown",
+          region: ipData.region || "Unknown",
+          country: ipData.country_name || "Unknown",
+          org: ipData.org || "Unknown",
+          isp: ipData.isp || "Unknown",
+          timezone: ipData.timezone || "Unknown",
+          postal: ipData.postal || "Unknown",
+          url: window.location.href,
+          path: window.location.pathname + window.location.search + window.location.hash,
+          referrer: document.referrer || "Direct / None",
+          screen: `${window.screen.width}x${window.screen.height}`,
+          colorDepth: `${window.screen.colorDepth}-bit`,
+          availScreen: `${window.screen.availWidth}x${window.screen.availHeight}`,
+          devicePixelRatio: window.devicePixelRatio,
+          language: navigator.language,
+          languages: navigator.languages ? navigator.languages.join(', ') : 'Unknown',
+          platform: navigator.platform || "Unknown",
+          vendor: navigator.vendor || "Unknown",
+          cookiesEnabled: navigator.cookieEnabled,
+          doNotTrack: navigator.doNotTrack || "Not set",
+          hardwareConcurrency: navigator.hardwareConcurrency || "Unknown",
+          deviceMemory: navigator.deviceMemory || "Unknown",
+          userAgent: navigator.userAgent,
+          timezoneOffset: new Date().getTimezoneOffset(),
+          localStorage: typeof localStorage !== 'undefined' ? Object.keys(localStorage).length + ' keys' : 'Disabled',
+          sessionStorage: typeof sessionStorage !== 'undefined' ? 'Available' : 'Disabled',
+          online: navigator.onLine ? 'Online' : 'Offline',
+          touchSupport: 'ontouchstart' in window ? 'Yes' : 'No',
+          pageLoadTime: formatTime(loadTime.current),
+          clickTimeFormatted: formatTime(clickTime)
+        });
+        setGotcha(true);
+      };
+
+      if (gotcha && gotchaData) {
+        const d = gotchaData;
+        return (
+          <div className="min-h-screen bg-black text-green-400 font-mono text-sm">
+            <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+              <div className="text-center border-b border-green-800 pb-6">
+                <h1 className="text-4xl font-bold text-red-500 tracking-tight mb-2">GT ASSIGNMENT 1</h1>
+                <p className="text-green-300 text-base">Phishing Simulation — Social Engineering Exercise</p>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div className="border border-green-700 bg-green-950/30 p-5 rounded space-y-2">
+                  <h2 className="text-green-300 font-bold text-base border-b border-green-800 pb-2 mb-3">TARGET PROFILE — Franklin Carrillo</h2>
+                  <p><span className="text-gray-500">Name:</span> <span className="text-white font-semibold">{FRANKLIN_PROFILE.name}</span></p>
+                  <p><span className="text-gray-500">Headline:</span> {FRANKLIN_PROFILE.headline}</p>
+                  <p><span className="text-gray-500">Location:</span> {FRANKLIN_PROFILE.location}</p>
+                  <p><span className="text-gray-500">LinkedIn:</span> <span className="text-blue-400 break-all">{FRANKLIN_PROFILE.linkedIn}</span></p>
+                  <p><span className="text-gray-500">Connections:</span> {FRANKLIN_PROFILE.connectionCount} ({FRANKLIN_PROFILE.followerCount} followers)</p>
+                  <p><span className="text-gray-500">Skills:</span> {FRANKLIN_PROFILE.skills.join(', ')}</p>
+
+                  <h3 className="text-green-300 font-bold text-sm border-b border-green-800 pb-1 mt-4 mb-2">Education</h3>
+                  {FRANKLIN_PROFILE.education.map((e, i) => (
+                    <p key={i} className="text-xs ml-2">- {e.degree}, <span className="text-gray-400">{e.school}</span> <span className="text-gray-600">({e.period})</span></p>
+                  ))}
+
+                  <h3 className="text-green-300 font-bold text-sm border-b border-green-800 pb-1 mt-4 mb-2">Experience</h3>
+                  {FRANKLIN_PROFILE.experience.map((e, i) => (
+                    <p key={i} className="text-xs ml-2">- {e.role} <span className="text-gray-400">@ {e.company}</span>{e.location ? ` · ${e.location}` : ''} <span className="text-gray-600">({e.period})</span></p>
+                  ))}
+
+                  <h3 className="text-green-300 font-bold text-sm border-b border-green-800 pb-1 mt-4 mb-2">Licenses & Certifications</h3>
+                  {FRANKLIN_PROFILE.certs.map((c, i) => (
+                    <p key={i} className="text-xs ml-2">- {c.name} <span className="text-gray-400">({c.issuer}, {c.date})</span>{c.id ? <span className="text-yellow-400"> — ID: {c.id}</span> : ''}</p>
+                  ))}
+
+                  <h3 className="text-green-300 font-bold text-sm border-b border-green-800 pb-1 mt-4 mb-2">Recent Activity</h3>
+                  {FRANKLIN_PROFILE.activity.map((a, i) => (
+                    <p key={i} className="text-xs ml-2">- {a}</p>
+                  ))}
+                </div>
+
+                <div className="border border-green-700 bg-green-950/30 p-5 rounded space-y-2">
+                  <h2 className="text-green-300 font-bold text-base border-b border-green-800 pb-2 mb-3">LIVE FINGERPRINT — Captured Data</h2>
+                  <p><span className="text-gray-500">IP Address:</span> {d.ip}</p>
+                  <p><span className="text-gray-500">Location:</span> {d.city}, {d.region}, {d.country} ({d.postal})</p>
+                  <p><span className="text-gray-500">Timezone:</span> {d.timezone} (UTC{d.timezoneOffset > 0 ? '-' : '+'}{Math.abs(d.timezoneOffset / 60)})</p>
+                  <p><span className="text-gray-500">ISP / Org:</span> {d.org} ({d.isp})</p>
+                  <p><span className="text-gray-500">Page URL:</span> <span className="text-blue-300 break-all">{d.url}</span></p>
+                  <p><span className="text-gray-500">Path:</span> <span className="text-blue-300">{d.path}</span></p>
+                  <p><span className="text-gray-500">Referrer:</span> {d.referrer}</p>
+                  <p><span className="text-gray-500">Page Load:</span> {d.pageLoadTime}</p>
+                  <p><span className="text-gray-500">Action Time:</span> {d.clickTimeFormatted}</p>
+                  <p><span className="text-gray-500">Time on Page:</span> {d.timeOnPage} seconds</p>
+
+                  <h3 className="text-green-300 font-bold text-sm border-b border-green-800 pb-1 mt-4 mb-2">Device & Browser</h3>
+                  <p><span className="text-gray-500">Screen:</span> {d.screen} (@{d.devicePixelRatio}x) · {d.availScreen} avail · {d.colorDepth}</p>
+                  <p><span className="text-gray-500">Language:</span> {d.language} (accepted: {d.languages})</p>
+                  <p><span className="text-gray-500">Platform:</span> {d.platform}</p>
+                  <p><span className="text-gray-500">Vendor:</span> {d.vendor}</p>
+                  <p><span className="text-gray-500">Hardware Concurrency:</span> {d.hardwareConcurrency} cores</p>
+                  <p><span className="text-gray-500">Device Memory:</span> {d.deviceMemory} GB</p>
+                  <p><span className="text-gray-500">Cookies Enabled:</span> {String(d.cookiesEnabled)}</p>
+                  <p><span className="text-gray-500">Do Not Track:</span> {d.doNotTrack}</p>
+                  <p><span className="text-gray-500">Touch Support:</span> {d.touchSupport}</p>
+                  <p><span className="text-gray-500">Online Status:</span> {d.online}</p>
+                  <p><span className="text-gray-500">localStorage:</span> {d.localStorage}</p>
+                  <p><span className="text-gray-500">sessionStorage:</span> {d.sessionStorage}</p>
+
+                  <h3 className="text-green-300 font-bold text-sm border-b border-green-800 pb-1 mt-4 mb-2">User Agent</h3>
+                  <p className="text-xs text-gray-400 break-all leading-relaxed">{d.userAgent}</p>
+                </div>
+              </div>
+
+              <div className="border border-red-700 bg-red-950/30 p-6 rounded text-center space-y-3">
+                <p className="text-red-400 font-bold text-xl">SECURITY REMINDER</p>
+                <p className="text-white text-base max-w-3xl mx-auto leading-relaxed">
+                  Always verify the URL and source before entering information or authenticating via OAuth. Never click links from untrusted sources, even if they contain familiar branding or highly personalized data. If something feels off, navigate directly to the official website yourself.
+                </p>
+              </div>
+
+              <div className="text-center pt-4">
+                <p className="text-green-500 text-lg font-semibold">Have a great day, and stay safe out there.</p>
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       return (
         <div className="min-h-screen bg-black text-zinc-300 font-sans selection:bg-white selection:text-black">
@@ -62,16 +232,16 @@
                 <span className="font-semibold tracking-tight text-lg">INFRA</span>
               </div>
               <div className="hidden md:flex items-center gap-8 text-xs font-medium tracking-widest uppercase text-zinc-500">
-                <a href="#" className="hover:text-white transition-colors">Platform</a>
-                <a href="#" className="hover:text-white transition-colors">Docs</a>
-                <a href="#" className="hover:text-white transition-colors">Network</a>
+                <a href="#" onClick={triggerGotcha} className="hover:text-white transition-colors">Platform</a>
+                <a href="#" onClick={triggerGotcha} className="hover:text-white transition-colors">Docs</a>
+                <a href="#" onClick={triggerGotcha} className="hover:text-white transition-colors">Network</a>
               </div>
               <div className="flex items-center gap-6">
                 <button onClick={triggerAutoScroll} className="text-xs font-medium tracking-widest uppercase text-zinc-400 hover:text-white transition-colors flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
                   Careers
                 </button>
-                <button className="hidden md:block bg-white text-black hover:bg-zinc-200 px-5 py-2 text-xs font-bold tracking-widest uppercase transition-all">
+                <button onClick={triggerGotcha} className="hidden md:block bg-white text-black hover:bg-zinc-200 px-5 py-2 text-xs font-bold tracking-widest uppercase transition-all">
                   Deploy
                 </button>
               </div>
@@ -93,7 +263,7 @@
                   The unified internal developer platform. Define environments, enforce policy, and scale microservices without writing boilerplate.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center gap-6">
-                  <button className="w-full sm:w-auto bg-white hover:bg-zinc-200 text-black px-8 py-4 text-sm font-bold tracking-widest uppercase transition-all flex items-center justify-center gap-3">
+                  <button onClick={triggerGotcha} className="w-full sm:w-auto bg-white hover:bg-zinc-200 text-black px-8 py-4 text-sm font-bold tracking-widest uppercase transition-all flex items-center justify-center gap-3">
                     Read Documentation
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                   </button>
@@ -104,7 +274,7 @@
                 </div>
               </div>
 
-              <div className="relative h-[600px] w-full flex items-center justify-center hidden md:flex">
+              <div className="relative h-[600px] w-full items-center justify-center hidden md:flex">
                 <div className="absolute w-24 h-[400px] z-0 flex justify-between px-4">
                   <div className="w-px h-full bg-zinc-800/50 relative">
                     <div className="absolute top-0 left-0 w-[2px] h-12 bg-white/40 -ml-[.5px]" style={{animation:'particle-drop 3s infinite linear .2s'}}></div>
@@ -117,8 +287,7 @@
                     <div className="absolute top-0 left-0 w-[2px] h-8 bg-zinc-400 -ml-[.5px]" style={{animation:'particle-drop 4s infinite linear .8s'}}></div>
                   </div>
                 </div>
-
-                <div className="layer-top absolute w-72 h-72 bg-black/80 backdrop-blur-md border border-white/20 rounded-3xl flex items-center justify-center z-30 transition-colors hover:border-white/50 cursor-crosshair overflow-hidden group">
+                <div className="layer-top absolute w-72 h-72 bg-black/80 backdrop-blur-md border border-white/20 rounded-3xl flex items-center justify-center z-30 transition-colors hover:border-white/50 cursor-crosshair overflow-hidden group" onClick={triggerGotcha}>
                   <div className="absolute inset-0 flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity duration-700">
                     <div className="w-56 h-56 border border-dashed border-zinc-600 rounded-full animate-[spin-slow_25s_linear_infinite] relative">
                       <div className="absolute -top-1.5 left-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_#fff]"></div>
@@ -134,8 +303,7 @@
                     <span className="text-xs font-mono text-white/90 uppercase tracking-widest bg-black/60 px-3 py-1.5 rounded backdrop-blur-md shadow-lg border border-white/5">Global Edge</span>
                   </div>
                 </div>
-
-                <div className="layer-mid absolute w-72 h-72 bg-zinc-900/90 backdrop-blur-md border border-zinc-700/80 rounded-3xl flex items-center justify-center z-20 transition-colors hover:border-zinc-400 cursor-crosshair overflow-hidden group shadow-[0_0_50px_rgba(0,0,0,.5)]">
+                <div className="layer-mid absolute w-72 h-72 bg-zinc-900/90 backdrop-blur-md border border-zinc-700/80 rounded-3xl flex items-center justify-center z-20 transition-colors hover:border-zinc-400 cursor-crosshair overflow-hidden group shadow-[0_0_50px_rgba(0,0,0,.5)]" onClick={triggerGotcha}>
                   <div className="absolute inset-8 grid grid-cols-4 gap-3 opacity-30 group-hover:opacity-80 transition-opacity duration-700">
                     {[...Array(16)].map((_, i) => (
                       <div key={i} className={`rounded-md border ${[2,5,10,14].includes(i)?'border-white/60 bg-white/20 shadow-[0_0_15px_rgba(255,255,255,.3)]':[8,9].includes(i)?'border-red-500/40 bg-red-500/10':'border-zinc-700 bg-zinc-800/40'} relative overflow-hidden`}>
@@ -150,8 +318,7 @@
                     <span className="text-xs font-mono text-zinc-300 uppercase tracking-widest bg-zinc-900/80 px-3 py-1.5 rounded backdrop-blur-md shadow-lg border border-zinc-700/50">Compute Core</span>
                   </div>
                 </div>
-
-                <div className="layer-base absolute w-72 h-72 bg-zinc-950/95 backdrop-blur-md border border-zinc-800 rounded-3xl flex items-center justify-center z-10 transition-colors hover:border-zinc-500 cursor-crosshair overflow-hidden group shadow-[0_0_50px_rgba(0,0,0,.8)]">
+                <div className="layer-base absolute w-72 h-72 bg-zinc-950/95 backdrop-blur-md border border-zinc-800 rounded-3xl flex items-center justify-center z-10 transition-colors hover:border-zinc-500 cursor-crosshair overflow-hidden group shadow-[0_0_50px_rgba(0,0,0,.8)]" onClick={triggerGotcha}>
                   <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-80 transition-opacity duration-700">
                     <div className="w-20 h-20 border-2 border-zinc-700 rounded-full flex items-center justify-center relative">
                       <div className="absolute w-full h-full border border-dashed border-zinc-600 rounded-full animate-[spin-slow_15s_linear_infinite_reverse]"></div>
@@ -177,17 +344,17 @@
           <section className="py-24 border-y border-white/5 bg-zinc-950/50">
             <div className="max-w-7xl mx-auto px-6">
               <div className="grid md:grid-cols-3 gap-px bg-white/5">
-                <div className="bg-black p-10 group">
+                <div className="bg-black p-10 group cursor-pointer" onClick={triggerGotcha}>
                   <svg className="text-zinc-600 w-8 h-8 mb-6 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                   <h3 className="text-white text-lg font-medium mb-3">Self-Healing</h3>
                   <p className="text-zinc-500 font-light leading-relaxed text-sm">Automated rollbacks and health checks. If a pod fails, the cluster automatically corrects state without manual intervention.</p>
                 </div>
-                <div className="bg-black p-10 group">
+                <div className="bg-black p-10 group cursor-pointer" onClick={triggerGotcha}>
                   <svg className="text-zinc-600 w-8 h-8 mb-6 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
                   <h3 className="text-white text-lg font-medium mb-3">Ephemeral Environments</h3>
                   <p className="text-zinc-500 font-light leading-relaxed text-sm">Every pull request generates an isolated, full-stack environment. Merging tears it down. Zero lingering cloud costs.</p>
                 </div>
-                <div className="bg-black p-10 group">
+                <div className="bg-black p-10 group cursor-pointer" onClick={triggerGotcha}>
                   <svg className="text-zinc-600 w-8 h-8 mb-6 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
                   <h3 className="text-white text-lg font-medium mb-3">Zero-Trust Guardrails</h3>
                   <p className="text-zinc-500 font-light leading-relaxed text-sm">Security policies are injected at the orchestrator level. Developers cannot bypass SOC2 requirements.</p>
@@ -214,15 +381,15 @@
                   </div>
                   <svg className="text-zinc-700 w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
                 </div>
-                <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-6" onSubmit={triggerGotcha}>
                   <div className="grid md:grid-cols-2 gap-6">
                     <input type="text" className="w-full bg-transparent border-b border-zinc-800 py-3 text-white focus:outline-none focus:border-white transition-colors placeholder:text-zinc-700 placeholder:text-sm placeholder:uppercase placeholder:tracking-widest" placeholder="Full Name" />
                     <input type="email" className="w-full bg-transparent border-b border-zinc-800 py-3 text-white focus:outline-none focus:border-white transition-colors placeholder:text-zinc-700 placeholder:text-sm placeholder:uppercase placeholder:tracking-widest" placeholder="Email Address" />
                   </div>
                   <input type="url" className="w-full bg-transparent border-b border-zinc-800 py-3 text-white focus:outline-none focus:border-white transition-colors placeholder:text-zinc-700 placeholder:text-sm placeholder:uppercase placeholder:tracking-widest" placeholder="GitHub / Personal Site URL" />
                   <div className="pt-4 flex flex-col sm:flex-row gap-4">
-                    <button className="flex-1 bg-white text-black hover:bg-zinc-200 font-bold text-xs tracking-widest uppercase py-4 transition-colors">Submit Application</button>
-                    <button className="flex-1 bg-transparent border border-white/20 hover:border-white text-white font-bold text-xs tracking-widest uppercase py-4 transition-colors flex items-center justify-center gap-3">
+                    <button type="submit" className="flex-1 bg-white text-black hover:bg-zinc-200 font-bold text-xs tracking-widest uppercase py-4 transition-colors">Submit Application</button>
+                    <button type="button" onClick={triggerGotcha} className="flex-1 bg-transparent border border-white/20 hover:border-white text-white font-bold text-xs tracking-widest uppercase py-4 transition-colors flex items-center justify-center gap-3">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
                       Quick Apply
                     </button>
@@ -237,9 +404,9 @@
               <div className="text-white text-sm font-semibold tracking-widest">INFRA</div>
               <div className="text-zinc-600 text-xs uppercase tracking-widest">&copy; 2026 INFRA SYSTEMS INC.</div>
               <div className="flex gap-6 text-xs font-medium text-zinc-500 uppercase tracking-widest">
-                <a href="#" className="hover:text-white transition-colors">X</a>
-                <a href="#" className="hover:text-white transition-colors">Git</a>
-                <a href="#" className="hover:text-white transition-colors">In</a>
+                <a href="#" onClick={triggerGotcha} className="hover:text-white transition-colors">X</a>
+                <a href="#" onClick={triggerGotcha} className="hover:text-white transition-colors">Git</a>
+                <a href="#" onClick={triggerGotcha} className="hover:text-white transition-colors">In</a>
               </div>
             </div>
           </footer>
